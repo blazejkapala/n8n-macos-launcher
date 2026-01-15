@@ -18,16 +18,23 @@ chmod +x n8n-launcher.sh
 ./n8n-launcher.sh
 ```
 
+**NOWOŚĆ! 🎯 Skrypt teraz pyta o metodę instalacji:**
+- **Opcja 1: Natywna** - instaluje Node.js i n8n bezpośrednio
+- **Opcja 2: Docker** - uruchamia n8n w kontenerze Docker
+
 **Sprawdź:**
+- Czy pokazuje się wybór metody instalacji?
 - Kolory działają?
 - Wykrywa Maca (M1/M2/M3)?
-- Instaluje n8n?
+- Instaluje n8n (natywnie lub w Docker)?
 - Uruchamia się?
 
 **Przetestuj:**
+- Obie metody instalacji (natywną i Docker)
 - Ponowne uruchomienie
 - Ctrl+C w różnych momentach  
 - Różne porty (8080, etc.)
+- Przełączanie między metodami
 
 ## 🌐 Krok 2: GitHub
 

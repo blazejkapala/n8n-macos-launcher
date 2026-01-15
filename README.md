@@ -8,12 +8,33 @@ Interactive bash script to launch n8n on macOS with a user-friendly CLI interfac
 
 ## ✨ Features
 
+- 🎯 **Choose Your Installation Method**: Native or Docker
 - 🎨 Colorful CLI interface with symbols (✓, ✗, ➜, ★)
-- ✅ Automatic dependency checking (Homebrew, Node.js, n8n)
+- ✅ Automatic dependency checking (Homebrew, Node.js, n8n, Docker)
 - 📦 Interactive installation of missing components
 - 🔧 Port configuration and auto-browser opening
 - 🍎 Full support for Apple Silicon (M1/M2/M3)
+- 🐳 Docker support for isolated environments
 - 🛡️ Safe error handling and interruption support (Ctrl+C)
+
+## 🎯 Installation Methods
+
+The script offers **two installation methods** - choose the one that fits your needs:
+
+### 🖥️ Native Installation
+- Installs Node.js and n8n directly on your system
+- ✅ Faster startup times
+- ✅ Better macOS integration
+- ⚠️ Requires Node.js 18+
+
+### 🐳 Docker Installation
+- Runs n8n in an isolated Docker container
+- ✅ No Node.js required
+- ✅ Easy updates and cleanup
+- ✅ Isolated environment
+- ⚠️ Requires Docker Desktop
+
+**The script will ask you to choose when you run it!**
 
 ## 🚀 Quick Start
 
@@ -50,9 +71,11 @@ chmod +x n8n-launcher.sh
 The script automatically:
 
 1. ✓ Checks system (macOS, processor type)
-2. ✓ Detects/installs Homebrew
-3. ✓ Detects/installs Node.js (requires 18+)
-4. ✓ Detects/installs n8n
+2. ✓ **Asks you to choose installation method** (Native or Docker)
+3. ✓ Detects/installs Homebrew
+4. ✓ For Native: Detects/installs Node.js (18+) and n8n
+   - OR -
+   For Docker: Detects/installs Docker Desktop and n8n image
 5. ✓ Configures port and settings
 6. ✓ Launches n8n
 
@@ -113,9 +136,34 @@ echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 source ~/.zprofile
 ```
 
+### Docker Issues
+
+**Docker not running:**
+```bash
+# Start Docker Desktop from Applications
+# Wait for it to fully start (whale icon in menu bar)
+```
+
+**Container already exists:**
+```bash
+# Stop and remove existing container
+docker stop n8n
+docker rm n8n
+
+# Or restart it
+docker restart n8n
+```
+
+**View Docker logs:**
+```bash
+docker logs -f n8n
+```
+
 ## 📂 Data Location
 
 n8n data is stored in: `~/.n8n`
+
+This folder is used by both Native and Docker installations, so your workflows and settings persist regardless of which method you use.
 
 ---
 
@@ -123,33 +171,55 @@ n8n data is stored in: `~/.n8n`
 
 ### Basic Testing Scenarios
 
-#### Test 1: Full Installation Flow
+#### Test 1: Native Installation Flow
 ```bash
 ./n8n-launcher.sh
+# Choose option 1 (Native Installation)
 # Answer "y" to all prompts
 # Verify n8n launches correctly
 # Press Ctrl+C to stop
 ```
 
-#### Test 2: Repeat Launch
+#### Test 2: Docker Installation Flow
 ```bash
 ./n8n-launcher.sh
+# Choose option 2 (Docker Installation)
+# Answer "y" to all prompts
+# Verify n8n launches in Docker
+# Press Ctrl+C to stop
+```
+
+#### Test 3: Repeat Launch
+```bash
+./n8n-launcher.sh
+# Choose same method as before
 # Check that it recognizes installed components
 # Verify it runs without reinstalling
 ```
 
-#### Test 3: Interruption Handling
+#### Test 4: Interruption Handling
 ```bash
 ./n8n-launcher.sh
 # Press Ctrl+C at different points
 # Verify clean exit without errors
 ```
 
-#### Test 4: Custom Port
+#### Test 5: Custom Port
 ```bash
 ./n8n-launcher.sh
 # Enter port 8080 when prompted
 # Verify n8n runs on port 8080
+```
+
+#### Test 6: Switching Methods
+```bash
+# Try Native first
+./n8n-launcher.sh  # Choose Native
+
+# Then try Docker
+./n8n-launcher.sh  # Choose Docker
+
+# Verify both work independently
 ```
 
 ### What to Check
@@ -162,34 +232,50 @@ n8n data is stored in: `~/.n8n`
 
 **Functionality:**
 - [ ] System detection works (macOS, processor type)
+- [ ] Installation method choice appears
 - [ ] Homebrew detection/installation works
-- [ ] Node.js detection/installation works
-- [ ] n8n detection/installation works
+- [ ] **Native:** Node.js detection/installation works
+- [ ] **Native:** n8n detection/installation works
+- [ ] **Docker:** Docker detection/installation works
+- [ ] **Docker:** n8n container launches
 - [ ] Port configuration works
 - [ ] n8n launches successfully
 - [ ] Ctrl+C stops cleanly
 
 ### Testing Different Scenarios
 
-**Scenario A: Everything Already Installed**
+**Scenario A: Everything Already Installed (Native)**
+- Choose Native installation
 - Script should detect all components
 - Should go straight to configuration
 - Should launch n8n without issues
 
-**Scenario B: Missing n8n Only**
+**Scenario B: Everything Already Installed (Docker)**
+- Choose Docker installation
+- Script should detect Docker is running
+- Should launch n8n container
+- Should be able to attach to existing container
+
+**Scenario C: Missing n8n Only (Native)**
 ```bash
 # Uninstall n8n first
 npm uninstall -g n8n
 
-# Run script
+# Run script with Native method
 ./n8n-launcher.sh
 # Should detect and offer to install n8n
 ```
 
-**Scenario C: Apple Silicon Specific**
+**Scenario D: Missing Docker (Docker method)**
+- Choose Docker installation without Docker installed
+- Script should offer to install Docker Desktop
+- Verify installation works
+
+**Scenario E: Apple Silicon Specific**
 - Verify it detects M1/M2/M3 processor
 - Check Homebrew installs to /opt/homebrew
 - Confirm PATH is set correctly
+- Test both Native and Docker methods
 
 ### Logging Test Results
 

@@ -27,6 +27,7 @@ ROCKET="${MAGENTA}🚀${NC}"
 # Configuration
 N8N_PORT="${N8N_PORT:-5678}"
 N8N_VERSION="latest"
+INSTALLATION_METHOD=""
 
 # Helper functions
 print_header() {
@@ -65,6 +66,44 @@ print_info() {
 ask_question() {
     echo -e "\n${STAR} ${YELLOW}$1${NC}"
     echo -n -e "${ARROW} "
+}
+
+# Choose installation method
+choose_installation_method() {
+    print_section "Choose Installation Method"
+    
+    echo ""
+    echo -e "${BOLD}${CYAN}1)${NC} ${WHITE}Native Installation${NC}"
+    echo -e "   ${CYAN}→${NC} Installs Node.js and n8n directly on your system"
+    echo -e "   ${GREEN}+${NC} Faster startup"
+    echo -e "   ${GREEN}+${NC} Better macOS integration"
+    echo -e "   ${YELLOW}−${NC} Requires Node.js 18+"
+    echo ""
+    echo -e "${BOLD}${CYAN}2)${NC} ${WHITE}Docker Installation${NC}"
+    echo -e "   ${CYAN}→${NC} Runs n8n in an isolated Docker container"
+    echo -e "   ${GREEN}+${NC} Isolated environment"
+    echo -e "   ${GREEN}+${NC} Easy updates and cleanup"
+    echo -e "   ${GREEN}+${NC} No Node.js required"
+    echo -e "   ${YELLOW}−${NC} Requires Docker Desktop"
+    echo ""
+    
+    ask_question "Choose installation method (1 or 2):"
+    read -r choice
+    
+    case $choice in
+        1)
+            INSTALLATION_METHOD="native"
+            print_success "Selected: Native Installation"
+            ;;
+        2)
+            INSTALLATION_METHOD="docker"
+            print_success "Selected: Docker Installation"
+            ;;
+        *)
+            print_error "Invalid choice. Please enter 1 or 2."
+            choose_installation_method
+            ;;
+    esac
 }
 
 # Check macOS version
@@ -197,6 +236,72 @@ install_n8n() {
     print_success "n8n installed successfully"
 }
 
+# Check if Docker is installed
+check_docker() {
+    print_section "Checking Docker"
+    
+    if command -v docker &> /dev/null; then
+        # Check if Docker daemon is running
+        if docker info &> /dev/null; then
+            docker_version=$(docker --version)
+            print_success "Docker installed and running: $docker_version"
+            return 0
+        else
+            print_warning "Docker is installed but not running"
+            print_info "Please start Docker Desktop and try again"
+            ask_question "Start Docker Desktop now and press Enter to continue..."
+            read -r
+            if docker info &> /dev/null; then
+                print_success "Docker is now running"
+                return 0
+            else
+                print_error "Docker is still not running"
+                return 1
+            fi
+        fi
+    else
+        print_warning "Docker is not installed"
+        ask_question "Would you like to install Docker Desktop? (y/n)"
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            install_docker
+            return 0
+        else
+            print_error "Docker is required for Docker installation method"
+            return 1
+        fi
+    fi
+}
+
+install_docker() {
+    if command -v brew &> /dev/null; then
+        print_info "Installing Docker Desktop via Homebrew..."
+        brew install --cask docker
+        print_success "Docker Desktop installed successfully"
+        print_warning "Please start Docker Desktop from Applications"
+        ask_question "Press Enter after Docker Desktop has started..."
+        read -r
+    else
+        print_error "Homebrew is not available"
+        print_info "Please install Docker Desktop manually from: https://www.docker.com/products/docker-desktop"
+        return 1
+    fi
+}
+
+# Check if n8n Docker image exists
+check_n8n_docker() {
+    print_section "Checking n8n Docker Image"
+    
+    if docker images -q n8nio/n8n &> /dev/null; then
+        print_success "n8n Docker image found"
+        return 0
+    else
+        print_info "n8n Docker image not found"
+        print_info "The image will be downloaded automatically on first run"
+        return 0
+    fi
+}
+
 # Configure n8n
 configure_n8n() {
     print_section "Configuring n8n"
@@ -220,9 +325,83 @@ configure_n8n() {
     print_success "n8n data folder: $n8n_data_folder"
 }
 
-# Launch n8n
+# Launch n8n with Docker
+launch_n8n_docker() {
+    print_section "Starting n8n (Docker)"
+    
+    print_info "Preparing Docker container..."
+    
+    # Check if container already exists
+    if docker ps -a --format '{{.Names}}' | grep -q '^n8n$'; then
+        print_info "Existing n8n container found"
+        
+        # Check if it's running
+        if docker ps --format '{{.Names}}' | grep -q '^n8n$'; then
+            print_warning "n8n container is already running"
+            ask_question "Would you like to restart it? (y/n)"
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                print_info "Stopping existing container..."
+                docker stop n8n
+                docker rm n8n
+            else
+                print_info "Attaching to running container..."
+                if [[ "$open_browser" =~ ^[Yy]$ ]]; then
+                    open "http://localhost:$N8N_PORT" &
+                fi
+                echo ""
+                echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
+                echo -e "${CYAN}║${NC}  ${BOLD}n8n is running at:${NC}                                  ${CYAN}║${NC}"
+                echo -e "${CYAN}║${NC}  ${GREEN}${BOLD}http://localhost:$N8N_PORT${NC}                                ${CYAN}║${NC}"
+                echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+                echo -e "${CYAN}║${NC}  ${YELLOW}To stop, run: docker stop n8n${NC}                      ${CYAN}║${NC}"
+                echo -e "${CYAN}║${NC}  ${YELLOW}To view logs: docker logs -f n8n${NC}                   ${CYAN}║${NC}"
+                echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
+                echo ""
+                docker logs -f n8n
+                return 0
+            fi
+        else
+            print_info "Removing stopped container..."
+            docker rm n8n
+        fi
+    fi
+    
+    print_success "Starting new n8n container..."
+    echo ""
+    echo -e "${ROCKET} ${BOLD}${MAGENTA}Launching n8n in Docker...${NC}"
+    echo ""
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}  ${BOLD}n8n will be available at:${NC}                           ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}${BOLD}http://localhost:$N8N_PORT${NC}                                ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${YELLOW}To stop n8n:${NC}                                        ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${WHITE}docker stop n8n${NC}                                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${YELLOW}To view logs:${NC}                                       ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${WHITE}docker logs -f n8n${NC}                                  ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${YELLOW}To stop logs: Ctrl+C${NC}                               ${CYAN}║${NC}"
+    echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    
+    # Open browser if requested
+    if [[ "$open_browser" =~ ^[Yy]$ ]]; then
+        sleep 5
+        open "http://localhost:$N8N_PORT" &
+    fi
+    
+    # Run Docker container
+    docker run -it --rm \
+        --name n8n \
+        -p $N8N_PORT:5678 \
+        -v ~/.n8n:/home/node/.n8n \
+        n8nio/n8n
+}
+
+# Launch n8n (native)
 launch_n8n() {
-    print_section "Starting n8n"
+    print_section "Starting n8n (Native)"
     
     print_info "Preparing environment..."
     
@@ -258,17 +437,24 @@ show_summary() {
     echo -e "${GREEN}All components are installed:${NC}"
     echo ""
     
-    if command -v brew &> /dev/null; then
-        echo -e "  ${CHECK_MARK} Homebrew: $(brew --version | head -n1 | awk '{print $2}')"
-    fi
-    
-    if command -v node &> /dev/null; then
-        echo -e "  ${CHECK_MARK} Node.js: $(node --version)"
-        echo -e "  ${CHECK_MARK} npm: v$(npm --version)"
-    fi
-    
-    if command -v n8n &> /dev/null; then
-        echo -e "  ${CHECK_MARK} n8n: version $(n8n --version 2>/dev/null || echo 'installed')"
+    if [[ "$INSTALLATION_METHOD" == "docker" ]]; then
+        if command -v docker &> /dev/null; then
+            echo -e "  ${CHECK_MARK} Docker: $(docker --version | awk '{print $3}' | sed 's/,//')"
+        fi
+        echo -e "  ${CHECK_MARK} n8n: Docker image (n8nio/n8n)"
+    else
+        if command -v brew &> /dev/null; then
+            echo -e "  ${CHECK_MARK} Homebrew: $(brew --version | head -n1 | awk '{print $2}')"
+        fi
+        
+        if command -v node &> /dev/null; then
+            echo -e "  ${CHECK_MARK} Node.js: $(node --version)"
+            echo -e "  ${CHECK_MARK} npm: v$(npm --version)"
+        fi
+        
+        if command -v n8n &> /dev/null; then
+            echo -e "  ${CHECK_MARK} n8n: version $(n8n --version 2>/dev/null || echo 'installed')"
+        fi
     fi
     
     echo ""
@@ -284,19 +470,39 @@ main() {
     # Run checks
     check_macos
     
-    if ! check_homebrew; then
-        print_error "Cannot continue without Homebrew"
-        exit 1
-    fi
+    # Choose installation method
+    choose_installation_method
     
-    if ! check_nodejs; then
-        print_error "Cannot continue without Node.js"
-        exit 1
-    fi
-    
-    if ! check_n8n; then
-        print_error "Cannot continue without n8n"
-        exit 1
+    if [[ "$INSTALLATION_METHOD" == "docker" ]]; then
+        # Docker installation path
+        if ! check_homebrew; then
+            print_error "Cannot continue without Homebrew (needed to install Docker)"
+            exit 1
+        fi
+        
+        if ! check_docker; then
+            print_error "Cannot continue without Docker"
+            exit 1
+        fi
+        
+        check_n8n_docker
+        
+    else
+        # Native installation path
+        if ! check_homebrew; then
+            print_error "Cannot continue without Homebrew"
+            exit 1
+        fi
+        
+        if ! check_nodejs; then
+            print_error "Cannot continue without Node.js"
+            exit 1
+        fi
+        
+        if ! check_n8n; then
+            print_error "Cannot continue without n8n"
+            exit 1
+        fi
     fi
     
     show_summary
@@ -308,11 +514,21 @@ main() {
     ask_question "Would you like to start n8n now? (y/n)"
     read -r response
     if [[ "$response" =~ ^[Yy]$ ]]; then
-        launch_n8n
+        if [[ "$INSTALLATION_METHOD" == "docker" ]]; then
+            launch_n8n_docker
+        else
+            launch_n8n
+        fi
     else
         echo ""
         print_success "Installation complete!"
-        print_info "To start n8n later, use the command: n8n start"
+        if [[ "$INSTALLATION_METHOD" == "docker" ]]; then
+            print_info "To start n8n later, run: docker run -it --rm --name n8n -p 5678:5678 -v ~/.n8n:/home/node/.n8n n8nio/n8n"
+            print_info "Or simply run this script again!"
+        else
+            print_info "To start n8n later, use the command: n8n start"
+            print_info "Or simply run this script again!"
+        fi
         echo ""
     fi
 }
