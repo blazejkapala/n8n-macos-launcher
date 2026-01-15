@@ -9,6 +9,7 @@ Interactive bash script to launch n8n on macOS with a user-friendly CLI interfac
 ## ✨ Features
 
 - 🎯 **Choose Your Installation Method**: Native or Docker
+- 🔄 **Automatic Update Checking**: Detects new n8n versions on every run
 - 🎨 Colorful CLI interface with symbols (✓, ✗, ➜, ★)
 - ✅ Automatic dependency checking (Homebrew, Node.js, n8n, Docker)
 - 📦 Interactive installation of missing components
@@ -79,8 +80,9 @@ The script automatically:
 4. ✓ For Native: Detects/installs Node.js (18+) and n8n
    - OR -
    For Docker: Detects/installs Docker Desktop and n8n image
-5. ✓ Configures port and settings
-6. ✓ Launches n8n
+5. ✓ **Checks for n8n updates** and offers to upgrade if available
+6. ✓ Configures port and settings
+7. ✓ Launches n8n
 
 After launch, n8n will be available at: `http://localhost:5678`
 
@@ -105,6 +107,24 @@ n8n start
 
 ### Updating n8n
 
+**Automatic Update Check:**
+
+The script automatically checks for updates every time you run it! If a new version is available, it will ask if you want to update.
+
+```bash
+# Just run the script again
+./n8n-launcher.sh
+
+# If update available, you'll see:
+# ⚠ New n8n version available!
+#   Current version: 1.64.3
+#   Latest version:  1.64.63
+# 
+# ★ Would you like to update n8n now? (y/n)
+```
+
+**Manual Update:**
+
 **Native Installation:**
 ```bash
 # Update n8n to latest version
@@ -116,7 +136,7 @@ npm install -g n8n@latest
 
 **Docker Installation:**
 ```bash
-# Pull latest image
+# The script auto-updates the image, or manually:
 docker pull n8nio/n8n:latest
 
 # Stop and remove old container

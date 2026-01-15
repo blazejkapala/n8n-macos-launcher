@@ -320,6 +320,10 @@ check_n8n() {
     if command -v n8n &> /dev/null; then
         n8n_version=$(n8n --version 2>/dev/null || echo "unknown")
         print_success "n8n installed: version $n8n_version"
+        
+        # Check for updates
+        check_n8n_update
+        
         return 0
     else
         print_warning "n8n is not installed"
@@ -333,6 +337,57 @@ check_n8n() {
             return 1
         fi
     fi
+}
+
+# Check for n8n updates (Native)
+check_n8n_update() {
+    print_info "Checking for n8n updates..."
+    
+    # Get current version
+    current_version=$(n8n --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    
+    if [[ -z "$current_version" ]]; then
+        print_warning "Could not determine current n8n version"
+        return 0
+    fi
+    
+    # Get latest version from npm
+    latest_version=$(npm view n8n version 2>/dev/null)
+    
+    if [[ -z "$latest_version" ]]; then
+        print_warning "Could not check for updates (npm registry unavailable)"
+        return 0
+    fi
+    
+    # Compare versions
+    if [[ "$current_version" != "$latest_version" ]]; then
+        echo ""
+        print_warning "New n8n version available!"
+        echo -e "  ${YELLOW}Current version:${NC} $current_version"
+        echo -e "  ${GREEN}Latest version:${NC}  $latest_version"
+        echo ""
+        
+        ask_question "Would you like to update n8n now? (y/n)"
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            update_n8n
+        else
+            print_info "You can update later with: npm update -g n8n"
+        fi
+    else
+        print_success "n8n is up to date (v$current_version)"
+    fi
+}
+
+# Update n8n (Native)
+update_n8n() {
+    print_section "Updating n8n"
+    
+    print_info "Updating n8n to latest version..."
+    npm install -g n8n@latest
+    
+    new_version=$(n8n --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    print_success "n8n updated to version $new_version"
 }
 
 install_n8n() {
@@ -397,13 +452,46 @@ install_docker() {
 check_n8n_docker() {
     print_section "Checking n8n Docker Image"
     
-    if docker images -q n8nio/n8n &> /dev/null; then
+    if docker images n8nio/n8n --format "{{.Repository}}" 2>/dev/null | grep -q "n8nio/n8n"; then
         print_success "n8n Docker image found"
+        
+        # Check for updates
+        check_n8n_docker_update
+        
         return 0
     else
         print_info "n8n Docker image not found"
         print_info "The image will be downloaded automatically on first run"
         return 0
+    fi
+}
+
+# Check for n8n Docker image updates
+check_n8n_docker_update() {
+    print_info "Checking for Docker image updates..."
+    
+    # Get local image ID
+    local_image=$(docker images n8nio/n8n:latest --format "{{.ID}}" 2>/dev/null | head -1)
+    
+    if [[ -z "$local_image" ]]; then
+        print_info "No local image found, will download on first run"
+        return 0
+    fi
+    
+    # Pull latest image digest to compare (quiet mode)
+    print_info "Checking Docker Hub for updates..."
+    docker pull n8nio/n8n:latest --quiet 2>/dev/null
+    
+    # Get new image ID after pull
+    new_image=$(docker images n8nio/n8n:latest --format "{{.ID}}" 2>/dev/null | head -1)
+    
+    if [[ "$local_image" != "$new_image" ]]; then
+        echo ""
+        print_success "n8n Docker image has been updated to the latest version!"
+        print_info "New containers will use the updated image"
+        echo ""
+    else
+        print_success "n8n Docker image is up to date"
     fi
 }
 

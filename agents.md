@@ -14,7 +14,8 @@ This file contains instructions on how to use this project in the context of AI 
 2. **Installation Method Selection** - interactive menu for choosing method
 3. **Dependency Management** - automatic installation of missing components
 4. **Node.js Version Validation** - detects incompatible versions and suggests solutions
-5. **Colorful CLI Interface** - symbols and formatting for better readability
+5. **Automatic Update Checking** - checks for new n8n versions on every run and offers to update
+6. **Colorful CLI Interface** - symbols and formatting for better readability
 
 ## ⚠️ Critical Node.js Information
 
@@ -79,9 +80,24 @@ nvm alias default 20
    c) If not: instruct how to install/start
 
 5. Run script: ./n8n-launcher.sh
+
+Note: Script automatically checks for n8n updates and offers to upgrade if available.
 ```
 
-### Scenario 2: Debugging Problems
+### Scenario 2: User Wants to Update n8n
+
+```
+1. Just run the script again: ./n8n-launcher.sh
+2. Script automatically checks current vs latest version
+3. If update available, it will prompt to update
+4. User can choose to update now or skip
+
+Alternative: Manually update
+- Native: npm update -g n8n
+- Docker: Image auto-updates, or docker pull n8nio/n8n:latest
+```
+
+### Scenario 4: Debugging Problems
 
 **Problem: "Node.js version X is currently not supported"**
 ```
@@ -125,6 +141,8 @@ When user mentions:
 - **"Node version error"** → suggest Docker or compatible version
 - **"prefer native installation"** → make sure they have v18/v20/v22
 - **"have Node v25"** → definitely Docker!
+- **"old version of n8n"** → just run script again, it auto-checks updates!
+- **"how to update n8n"** → run ./n8n-launcher.sh, it will detect and offer update
 - **"Apple Silicon / M1/M2/M3"** → everything should work, Homebrew at /opt/homebrew
 - **"Intel Mac"** → everything should work, Homebrew at /usr/local
 
@@ -169,9 +187,20 @@ n8n-macos-launcher/
 
 ## 🚀 Quick Commands for Copy-Paste
 
+**Check for n8n updates (automatic):**
+```bash
+./n8n-launcher.sh
+# Script automatically checks and offers to update
+```
+
 **Check Node.js version:**
 ```bash
 node --version
+```
+
+**Check current n8n version:**
+```bash
+n8n --version
 ```
 
 **Install Node.js 20:**
