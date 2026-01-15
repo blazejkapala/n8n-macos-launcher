@@ -27,14 +27,17 @@ The script offers **two installation methods** - choose the one that fits your n
 - ✅ Better macOS integration
 - ⚠️ Requires Node.js 18+
 
-### 🐳 Docker Installation
+### 🐳 Docker Installation (Recommended if you have Node.js version issues)
 - Runs n8n in an isolated Docker container
-- ✅ No Node.js required
+- ✅ **No Node.js version conflicts!**
 - ✅ Easy updates and cleanup
 - ✅ Isolated environment
+- ✅ Works regardless of your system Node.js version
 - ⚠️ Requires Docker Desktop
 
 **The script will ask you to choose when you run it!**
+
+💡 **Tip:** If you're getting Node.js version errors with Native installation, just run the script again and choose Docker instead!
 
 ## 🚀 Quick Start
 
@@ -122,11 +125,44 @@ export N8N_PORT=8080
 ### n8n Won't Start
 
 ```bash
-# Check Node.js version (requires 18+)
+# Check Node.js version (requires v18.17+, v20, or v22 ONLY)
 node --version
 
-# Update if needed
-brew upgrade node
+# If version is too old or too new, install compatible version
+brew uninstall --ignore-dependencies node
+brew install node@20
+brew link --overwrite node@20 --force
+
+# Update PATH
+echo 'export PATH="/opt/homebrew/opt/node@20/bin:$PATH"' >> ~/.zprofile
+source ~/.zprofile
+
+# Verify
+node --version  # Should show v20.x.x
+```
+
+### Node.js Version Issues
+
+**"Your Node.js version X is currently not supported"**
+
+n8n is picky about Node.js versions! It supports:
+- ✅ Node.js v18.17.0+
+- ✅ Node.js v20.x (Recommended)
+- ✅ Node.js v22.x
+- ❌ Node.js v19, v21, v23, v25+ (NOT supported)
+
+**Solution 1: Use Docker Instead (Easiest)**
+```bash
+./n8n-launcher.sh
+# Choose option 2 (Docker) - no Node.js version issues!
+```
+
+**Solution 2: Install Compatible Node.js**
+```bash
+# The script will offer to install a compatible version
+# Or do it manually:
+brew install node@20
+brew link --overwrite node@20 --force
 ```
 
 ### Homebrew PATH (Apple Silicon)

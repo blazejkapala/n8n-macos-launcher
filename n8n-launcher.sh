@@ -168,21 +168,50 @@ check_nodejs() {
         print_success "Node.js installed: $node_version"
         print_success "npm installed: v$npm_version"
         
-        # Check if version is sufficient (n8n requires Node.js 18+)
+        # Check if version is compatible with n8n (requires 18, 20, or 22)
         major_version=$(echo $node_version | cut -d'v' -f2 | cut -d'.' -f1)
-        if [ "$major_version" -ge 18 ]; then
-            print_success "Node.js version is sufficient (requires 18+)"
-            return 0
-        else
-            print_warning "Node.js version $node_version may be too old (requires 18+)"
-            ask_question "Would you like to update Node.js? (y/n)"
+        
+        if [ "$major_version" -lt 18 ]; then
+            print_error "Node.js version $node_version is too old!"
+            print_warning "n8n requires Node.js v18.17+, v20, or v22"
+            ask_question "Would you like to install a compatible Node.js version? (y/n)"
             read -r response
             if [[ "$response" =~ ^[Yy]$ ]]; then
                 install_nodejs
                 return 0
+            else
+                return 1
             fi
+        elif [ "$major_version" -eq 18 ] || [ "$major_version" -eq 20 ] || [ "$major_version" -eq 22 ]; then
+            print_success "Node.js version is compatible with n8n (v$major_version)"
+            return 0
+        elif [ "$major_version" -gt 22 ]; then
+            print_error "Node.js version $node_version is too new!"
+            print_warning "n8n currently supports v18.17+, v20, or v22 only"
+            print_warning "Your current version: v$major_version"
+            echo ""
+            print_info "💡 Recommended: Use Docker installation instead (no Node.js version issues)"
+            echo ""
+            ask_question "Would you like to downgrade to a compatible Node.js version? (y/n)"
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                install_nodejs_compatible
+                return 0
+            else
+                print_warning "Continuing with incompatible Node.js version - n8n may not work!"
+                ask_question "Continue anyway? (y/n)"
+                read -r continue_response
+                if [[ "$continue_response" =~ ^[Yy]$ ]]; then
+                    return 0
+                else
+                    return 1
+                fi
+            fi
+        else
+            print_warning "Node.js version $node_version - compatibility unknown"
+            print_info "n8n officially supports v18.17+, v20, or v22"
+            return 0
         fi
-        return 0
     else
         print_warning "Node.js is not installed"
         ask_question "Would you like to install Node.js? (y/n)"
@@ -199,11 +228,87 @@ check_nodejs() {
 
 install_nodejs() {
     if command -v brew &> /dev/null; then
-        print_info "Installing Node.js via Homebrew..."
-        brew install node
-        print_success "Node.js installed successfully"
+        print_info "Installing Node.js LTS via Homebrew..."
+        print_warning "Note: Installing node@20 (LTS) for n8n compatibility"
+        brew install node@20
+        
+        # Link node@20
+        brew link --overwrite node@20 --force
+        
+        # Update PATH
+        echo 'export PATH="/opt/homebrew/opt/node@20/bin:$PATH"' >> ~/.zprofile
+        export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+        
+        print_success "Node.js 20 (LTS) installed successfully"
+        
+        # Verify installation
+        if command -v node &> /dev/null; then
+            new_version=$(node --version)
+            print_success "Active Node.js version: $new_version"
+        fi
     else
         print_error "Homebrew is not available. Install Node.js manually from https://nodejs.org"
+        return 1
+    fi
+}
+
+install_nodejs_compatible() {
+    if command -v brew &> /dev/null; then
+        print_section "Installing Compatible Node.js Version"
+        
+        echo ""
+        echo -e "${BOLD}${CYAN}Choose Node.js version:${NC}"
+        echo -e "  ${CYAN}1)${NC} Node.js 20 (LTS) ${GREEN}← Recommended${NC}"
+        echo -e "  ${CYAN}2)${NC} Node.js 22 (Current)"
+        echo -e "  ${CYAN}3)${NC} Node.js 18 (Older LTS)"
+        echo ""
+        
+        ask_question "Choose version (1-3, default: 1):"
+        read -r choice
+        
+        case ${choice:-1} in
+            1)
+                node_version="20"
+                ;;
+            2)
+                node_version="22"
+                ;;
+            3)
+                node_version="18"
+                ;;
+            *)
+                node_version="20"
+                ;;
+        esac
+        
+        print_info "Uninstalling current Node.js version..."
+        brew uninstall --ignore-dependencies node 2>/dev/null || true
+        
+        print_info "Installing Node.js $node_version via Homebrew..."
+        brew install node@$node_version
+        
+        # Link the specific version
+        brew unlink node 2>/dev/null || true
+        brew link --overwrite node@$node_version --force
+        
+        # Update PATH for the specific version
+        if [[ "$node_version" != "22" ]]; then
+            echo "export PATH=\"/opt/homebrew/opt/node@$node_version/bin:\$PATH\"" >> ~/.zprofile
+            export PATH="/opt/homebrew/opt/node@$node_version/bin:$PATH"
+        fi
+        
+        print_success "Node.js $node_version installed successfully"
+        
+        # Verify installation
+        if command -v node &> /dev/null; then
+            new_version=$(node --version)
+            print_success "Active Node.js version: $new_version"
+        else
+            print_warning "Please restart your terminal or run: source ~/.zprofile"
+        fi
+    else
+        print_error "Homebrew is not available"
+        print_info "Please use nvm to manage Node.js versions: https://github.com/nvm-sh/nvm"
         return 1
     fi
 }
