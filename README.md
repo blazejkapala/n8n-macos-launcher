@@ -103,6 +103,30 @@ After first installation, you can launch n8n directly:
 n8n start
 ```
 
+### Updating n8n
+
+**Native Installation:**
+```bash
+# Update n8n to latest version
+npm update -g n8n
+
+# Or reinstall
+npm install -g n8n@latest
+```
+
+**Docker Installation:**
+```bash
+# Pull latest image
+docker pull n8nio/n8n:latest
+
+# Stop and remove old container
+docker stop n8n
+docker rm n8n
+
+# Run with latest image
+./n8n-launcher.sh
+```
+
 ## 🐛 Troubleshooting
 
 ### "Permission denied"

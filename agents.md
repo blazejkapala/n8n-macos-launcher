@@ -109,6 +109,14 @@ Solution:
 4. Wait 30-60 seconds for full startup
 ```
 
+**Problem: "You're on X.X.X, which was released X ago and is X versions behind"**
+```
+This is just a notification, n8n is working!
+Solution to update:
+- Native: npm update -g n8n
+- Docker: docker pull n8nio/n8n:latest && restart container
+```
+
 ## 🧠 Context for LLM
 
 When user mentions:
@@ -202,6 +210,20 @@ docker images
 ```bash
 docker stop n8n
 docker rm n8n
+```
+
+**Update n8n (Native):**
+```bash
+npm update -g n8n
+# or
+npm install -g n8n@latest
+```
+
+**Update n8n (Docker):**
+```bash
+docker pull n8nio/n8n:latest
+docker stop n8n && docker rm n8n
+./n8n-launcher.sh
 ```
 
 ## 📚 Additional Resources
