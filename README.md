@@ -20,14 +20,14 @@ Interactive bash script to launch n8n on macOS with a user-friendly CLI interfac
 ### Method 1: Direct Run (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/n8n-macos-launcher/main/n8n-launcher.sh | bash
+curl -fsSL https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/n8n-launcher.sh | bash
 ```
 
 ### Method 2: Download and Run
 
 ```bash
 # Download
-curl -O https://raw.githubusercontent.com/YOUR_USERNAME/n8n-macos-launcher/main/n8n-launcher.sh
+curl -O https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/n8n-launcher.sh
 
 # Make executable
 chmod +x n8n-launcher.sh
@@ -39,7 +39,7 @@ chmod +x n8n-launcher.sh
 ### Method 3: Git Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/n8n-macos-launcher.git
+git clone https://github.com/blazejkapala/n8n-macos-launcher.git
 cd n8n-macos-launcher
 chmod +x n8n-launcher.sh
 ./n8n-launcher.sh
@@ -241,8 +241,8 @@ git commit -m "Initial commit: n8n macOS launcher
 # Set branch to main
 git branch -M main
 
-# Add remote (replace YOUR_USERNAME!)
-git remote add origin https://github.com/YOUR_USERNAME/n8n-macos-launcher.git
+# Add remote
+git remote add origin https://github.com/blazejkapala/n8n-macos-launcher.git
 
 # Push
 git push -u origin main

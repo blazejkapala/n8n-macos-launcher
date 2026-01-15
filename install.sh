@@ -5,7 +5,7 @@
 
 set -e
 
-REPO_URL="https://raw.githubusercontent.com/YOUR_USERNAME/n8n-macos-launcher/main"
+REPO_URL="https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main"
 SCRIPT_NAME="n8n-launcher.sh"
 INSTALL_DIR="$HOME/.local/bin"
 
