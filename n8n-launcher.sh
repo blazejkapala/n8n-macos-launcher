@@ -2,7 +2,7 @@
 
 # n8n Launcher for macOS
 # Interactive script to check dependencies and launch n8n
-# Compatible with Apple Silicon (M1/M2/M3)
+# Compatible with Apple Silicon (M1/M2/M3/M4)
 
 set -e
 
@@ -168,14 +168,14 @@ print_header() {
     echo -e "${CYAN}"
     echo -e "    ╭────────────────────────────────────╮"
     echo -e "    │                                    │"
-    echo -e "    │  ${WHITE}███╗   ██╗${NC} ${RED}█████╗ ${NC} ${WHITE}███╗   ██╗${CYAN}    │"
-    echo -e "    │  ${WHITE}████╗  ██║${NC}${RED}██╔══██╗${NC} ${WHITE}████╗  ██║${CYAN}    │"
-    echo -e "    │  ${WHITE}██╔██╗ ██║${NC}${RED}╚█████╔╝${NC} ${WHITE}██╔██╗ ██║${CYAN}    │"
-    echo -e "    │  ${WHITE}██║╚██╗██║${NC}${RED}██╔══██╗${NC} ${WHITE}██║╚██╗██║${CYAN}    │"
-    echo -e "    │  ${WHITE}██║ ╚████║${NC}${RED}╚█████╔╝${NC} ${WHITE}██║ ╚████║${CYAN}    │"
-    echo -e "    │  ${WHITE}╚═╝  ╚═══╝${NC} ${RED}╚════╝ ${NC} ${WHITE}╚═╝  ╚═══╝${CYAN}    │"
+    echo -e "    │  ${WHITE}███╗   ██╗${NC} ${RED}█████╗ ${NC} ${WHITE}███╗   ██╗${CYAN}     │"
+    echo -e "    │  ${WHITE}████╗  ██║${NC}${RED}██╔══██╗${NC} ${WHITE}████╗  ██║${CYAN}     │"
+    echo -e "    │  ${WHITE}██╔██╗ ██║${NC}${RED}╚█████╔╝${NC} ${WHITE}██╔██╗ ██║${CYAN}     │"
+    echo -e "    │  ${WHITE}██║╚██╗██║${NC}${RED}██╔══██╗${NC} ${WHITE}██║╚██╗██║${CYAN}     │"
+    echo -e "    │  ${WHITE}██║ ╚████║${NC}${RED}╚█████╔╝${NC} ${WHITE}██║ ╚████║${CYAN}     │"
+    echo -e "    │  ${WHITE}╚═╝  ╚═══╝${NC} ${RED}╚════╝ ${NC} ${WHITE}╚═╝  ╚═══╝${CYAN}     │"
     echo -e "    │                                    │"
-    echo -e "    │  ${MAGENTA}🚀 LAUNCHER${CYAN}          ${DIM}for macOS${NC}${CYAN}   │"
+    echo -e "    │  ${MAGENTA}🚀 LAUNCHER${CYAN}          ${DIM}for macOS${NC}${CYAN}    │"
     echo -e "    │                                    │"
     echo -e "    ╰────────────────────────────────────╯"
     echo -e "${NC}"

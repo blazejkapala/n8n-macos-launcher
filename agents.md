@@ -143,7 +143,7 @@ When user mentions:
 - **"have Node v25"** → definitely Docker!
 - **"old version of n8n"** → just run script again, it auto-checks updates!
 - **"how to update n8n"** → run ./n8n-launcher.sh, it will detect and offer update
-- **"Apple Silicon / M1/M2/M3"** → everything should work, Homebrew at /opt/homebrew
+- **"Apple Silicon / M1/M2/M3/M4"** → everything should work, Homebrew at /opt/homebrew
 - **"Intel Mac"** → everything should work, Homebrew at /usr/local
 
 ## 📦 Project Structure

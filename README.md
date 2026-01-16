@@ -3,7 +3,7 @@
 Interactive bash script to launch n8n on macOS with a user-friendly CLI interface.
 
 ![macOS](https://img.shields.io/badge/macOS-Compatible-blue)
-![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3-orange)
+![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3%2FM4-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ⚡ Installation
@@ -44,7 +44,7 @@ chmod +x n8n-launcher.sh
 - 🐳 **Auto-start Docker**: Launches Docker Desktop if not running
 - 🎨 **Beautiful CLI**: Animations, progress bars, colored output
 - ✅ **Dependency Management**: Installs Homebrew, Node.js, Docker automatically
-- 🍎 **Apple Silicon**: Full M1/M2/M3 support
+- 🍎 **Apple Silicon**: Full M1/M2/M3/M4 support
 
 ## 🎯 Installation Methods
 
