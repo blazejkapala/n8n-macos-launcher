@@ -24,17 +24,7 @@ chmod +x n8n-launcher.sh
 ./n8n-launcher.sh
 ```
 
-### Option 2: Global Install
-
-Installs to `~/.local/bin` and adds to PATH (run from anywhere):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/install.sh | bash
-```
-
-After installation, restart terminal and run: `n8n-launcher.sh`
-
-### Option 3: Download to Current Directory
+### Option 2: Direct Download
 
 ```bash
 # Download

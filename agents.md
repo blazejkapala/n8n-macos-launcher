@@ -151,7 +151,6 @@ When user mentions:
 ```
 n8n-macos-launcher/
 ├── n8n-launcher.sh      # Main script
-├── install.sh           # Optional quick installer
 ├── README.md            # Complete documentation
 ├── agents.md            # This file
 ├── LICENSE              # MIT License
