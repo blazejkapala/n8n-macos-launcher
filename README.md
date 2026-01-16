@@ -6,10 +6,45 @@ Interactive bash script to launch n8n on macOS with a user-friendly CLI interfac
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## ⚡ Quick Install
+## ⚡ Installation
+
+### Option 1: Git Clone (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/n8n-launcher.sh | bash
+# Clone the repository
+git clone https://github.com/blazejkapala/n8n-macos-launcher.git
+
+# Enter directory
+cd n8n-macos-launcher
+
+# Make script executable
+chmod +x n8n-launcher.sh
+
+# Run the launcher
+./n8n-launcher.sh
+```
+
+### Option 2: Global Install
+
+Installs to `~/.local/bin` and adds to PATH (run from anywhere):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/install.sh | bash
+```
+
+After installation, restart terminal and run: `n8n-launcher.sh`
+
+### Option 3: Download to Current Directory
+
+```bash
+# Download
+curl -fsSL https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/n8n-launcher.sh -o n8n-launcher.sh
+
+# Make executable
+chmod +x n8n-launcher.sh
+
+# Run
+./n8n-launcher.sh
 ```
 
 ## ✨ Features

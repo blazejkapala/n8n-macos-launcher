@@ -30,35 +30,33 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     echo ""
     echo "Adding $INSTALL_DIR to PATH..."
     
-    # Detect shell
-    if [ -n "$ZSH_VERSION" ]; then
+    # Detect shell config file
+    if [ -f "$HOME/.zshrc" ]; then
         SHELL_RC="$HOME/.zshrc"
-    elif [ -n "$BASH_VERSION" ]; then
+    elif [ -f "$HOME/.bash_profile" ]; then
         SHELL_RC="$HOME/.bash_profile"
     else
         SHELL_RC="$HOME/.profile"
     fi
     
-    echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_RC"
-    export PATH="$PATH:$INSTALL_DIR"
+    # Check if already in shell config
+    if ! grep -q "$INSTALL_DIR" "$SHELL_RC" 2>/dev/null; then
+        echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_RC"
+        echo "✓ PATH updated in $SHELL_RC"
+    fi
     
-    echo "✓ PATH updated in $SHELL_RC"
-    echo "  Run 'source $SHELL_RC' or restart your terminal to apply changes"
+    export PATH="$PATH:$INSTALL_DIR"
 fi
 
 echo ""
 echo "✓ Installation complete!"
 echo ""
 echo "To launch n8n, run:"
-echo "  $SCRIPT_NAME"
+echo "  n8n-launcher.sh"
 echo ""
 echo "Or run directly:"
-echo "  $INSTALL_DIR/$SCRIPT_NAME"
+echo "  $INSTALL_DIR/n8n-launcher.sh"
 echo ""
-
-# Ask if user wants to run now
-read -p "Do you want to run n8n launcher now? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    "$INSTALL_DIR/$SCRIPT_NAME"
-fi
+echo "Note: You may need to restart your terminal or run:"
+echo "  source ~/.zshrc"
+echo ""
