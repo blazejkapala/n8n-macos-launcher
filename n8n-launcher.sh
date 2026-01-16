@@ -16,6 +16,8 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 BOLD='\033[1m'
+DIM='\033[2m'
+BLINK='\033[5m'
 
 # Symbols
 CHECK_MARK="${GREEN}✓${NC}"
@@ -24,27 +26,173 @@ ARROW="${CYAN}➜${NC}"
 STAR="${YELLOW}★${NC}"
 ROCKET="${MAGENTA}🚀${NC}"
 
+# Extended icons
+ICON_CHECK="✔"
+ICON_CROSS="✖"
+ICON_ARROW="▸"
+ICON_STAR="★"
+ICON_ROCKET="🚀"
+ICON_WARN="⚠"
+ICON_INFO="ℹ"
+ICON_GEAR="⚙"
+ICON_DOWNLOAD="⬇"
+ICON_PACKAGE="📦"
+ICON_DOCKER="🐳"
+ICON_NODE="⬢"
+ICON_DIAMOND="◆"
+
 # Configuration
 N8N_PORT="${N8N_PORT:-5678}"
 N8N_VERSION="latest"
 INSTALLATION_METHOD=""
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Animation Functions
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Spinner animation for background tasks
+spin() {
+    local pid=$1
+    local message="$2"
+    local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r  ${CYAN}${frames[$i]}${NC} %s" "$message"
+        i=$(( (i + 1) % ${#frames[@]} ))
+        sleep 0.1
+    done
+    printf "\r\033[K"
+}
+
+# Progress bar animation
+progress_bar() {
+    local current=$1
+    local total=$2
+    local width=40
+    local percent=$((current * 100 / total))
+    local filled=$((current * width / total))
+    local empty=$((width - filled))
+    printf "\r  ${CYAN}[${NC}"
+    printf "${GREEN}%${filled}s${NC}" | tr ' ' '█'
+    printf "${DIM}%${empty}s${NC}" | tr ' ' '░'
+    printf "${CYAN}]${NC} ${BOLD}%3d%%${NC}" "$percent"
+}
+
+# Typewriter effect for dramatic text
+typewriter() {
+    local text="$1"
+    local delay=${2:-0.03}
+    for ((i=0; i<${#text}; i++)); do
+        printf "%s" "${text:$i:1}"
+        sleep "$delay"
+    done
+    echo
+}
+
+# Gradient text effect (cycles through colors)
+print_gradient() {
+    local text="$1"
+    local colors=("$CYAN" "$BLUE" "$MAGENTA" "$RED" "$YELLOW" "$GREEN")
+    local len=${#text}
+    local color_count=${#colors[@]}
+    for ((i=0; i<len; i++)); do
+        local color_index=$((i % color_count))
+        printf "%b%s" "${colors[$color_index]}" "${text:$i:1}"
+    done
+    printf "%b\n" "$NC"
+}
+
+# Startup animation with progress bar
+startup_animation() {
+    local steps=("Initializing" "Loading components" "Preparing environment" "Starting n8n Launcher")
+    local total=${#steps[@]}
+    echo ""
+    for ((i=0; i<total; i++)); do
+        progress_bar $((i + 1)) $total
+        printf "  ${DIM}%s${NC}" "${steps[$i]}"
+        sleep 0.3
+    done
+    printf "\r\033[K"
+    echo ""
+}
+
+# Print fancy box
+print_fancy_box() {
+    local title="$1"
+    local icon="${2:-$ICON_DIAMOND}"
+    local width=45
+    echo ""
+    echo -e "  ${CYAN}╭$(printf '─%.0s' $(seq 1 $width))╮${NC}"
+    printf "  ${CYAN}│${NC}  ${BOLD}%s${NC}  %-*s${CYAN}│${NC}\n" "$icon" "$((width - 5))" "$title"
+    echo -e "  ${CYAN}╰$(printf '─%.0s' $(seq 1 $width))╯${NC}"
+}
+
+# Print terminal warning (critical message about not closing)
+print_terminal_warning() {
+    echo ""
+    echo -e "  ${RED}╔═══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "  ${RED}║${NC}                                                               ${RED}║${NC}"
+    echo -e "  ${RED}║${NC}   ${YELLOW}${BOLD}${ICON_WARN}  UWAGA: Zamknięcie tego terminala zatrzyma n8n!${NC}        ${RED}║${NC}"
+    echo -e "  ${RED}║${NC}                                                               ${RED}║${NC}"
+    echo -e "  ${RED}║${NC}   ${WHITE}Zostaw to okno otwarte, aby n8n działał w tle.${NC}            ${RED}║${NC}"
+    echo -e "  ${RED}║${NC}   ${WHITE}Aby zatrzymać n8n, naciśnij:${NC} ${CYAN}${BOLD}Ctrl+C${NC}                       ${RED}║${NC}"
+    echo -e "  ${RED}║${NC}                                                               ${RED}║${NC}"
+    echo -e "  ${RED}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+# Print info box (for running status)
+print_info_box() {
+    local url="$1"
+    local method="$2"
+    echo ""
+    echo -e "  ${GREEN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+    echo -e "  ${GREEN}┃${NC}                                                             ${GREEN}┃${NC}"
+    echo -e "  ${GREEN}┃${NC}  ${ICON_ROCKET} ${BOLD}${WHITE}n8n is running at:${NC}                                   ${GREEN}┃${NC}"
+    echo -e "  ${GREEN}┃${NC}     ${CYAN}${BOLD}$url${NC}                                  ${GREEN}┃${NC}"
+    echo -e "  ${GREEN}┃${NC}                                                             ${GREEN}┃${NC}"
+    if [[ "$method" == "docker" ]]; then
+        echo -e "  ${GREEN}┃${NC}  ${ICON_DOCKER} ${DIM}Running in Docker container${NC}                          ${GREEN}┃${NC}"
+    else
+        echo -e "  ${GREEN}┃${NC}  ${ICON_NODE} ${DIM}Running natively with Node.js${NC}                         ${GREEN}┃${NC}"
+    fi
+    echo -e "  ${GREEN}┃${NC}                                                             ${GREEN}┃${NC}"
+    echo -e "  ${GREEN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Helper functions
 print_header() {
     clear
+    echo ""
     echo -e "${BOLD}${CYAN}"
-    echo "╔═══════════════════════════════════════════════════════════╗"
-    echo "║                                                           ║"
-    echo "║               n8n Launcher for macOS                      ║"
-    echo "║          Workflow Automation Made Easy                    ║"
-    echo "║                                                           ║"
-    echo "╚═══════════════════════════════════════════════════════════╝"
+    echo -e "    ╭─────────────────────────────────────────╮"
+    echo -e "    │  ${WHITE}███╗   ██╗ █████╗ ███╗   ██╗${CYAN}          │"
+    echo -e "    │  ${WHITE}████╗  ██║██╔══██╗████╗  ██║${CYAN}          │"
+    echo -e "    │  ${WHITE}██╔██╗ ██║╚█████╔╝██╔██╗ ██║${CYAN}          │"
+    echo -e "    │  ${WHITE}██║╚██╗██║██╔══██╗██║╚██╗██║${CYAN}          │"
+    echo -e "    │  ${WHITE}██║ ╚████║╚█████╔╝██║ ╚████║${CYAN}          │"
+    echo -e "    │  ${WHITE}╚═╝  ╚═══╝ ╚════╝ ╚═╝  ╚═══╝${CYAN}          │"
+    echo -e "    │                                         │"
+    echo -e "    │  ${MAGENTA}🚀 LAUNCHER${CYAN}              ${DIM}for macOS${NC}${CYAN}   │"
+    echo -e "    ╰─────────────────────────────────────────╯"
     echo -e "${NC}"
+    echo ""
+
+    # Startup animation
+    startup_animation
 }
 
 print_section() {
-    echo -e "\n${BOLD}${WHITE}$1${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    local title="$1"
+    local width=47
+    local title_len=${#title}
+    local padding=$((width - title_len - 5))
+    echo ""
+    echo -e "  ${CYAN}╭$(printf '─%.0s' $(seq 1 $width))╮${NC}"
+    printf "  ${CYAN}│${NC}  ${ICON_DIAMOND}  ${BOLD}${WHITE}%s${NC}%*s${CYAN}│${NC}\n" "$title" "$padding" ""
+    echo -e "  ${CYAN}╰$(printf '─%.0s' $(seq 1 $width))╯${NC}"
+    echo ""
 }
 
 print_success() {
@@ -137,7 +285,7 @@ check_homebrew() {
         return 0
     else
         print_warning "Homebrew is not installed"
-        ask_question "Would you like to install Homebrew? (y/n)"
+        ask_question "Would you like to install Homebrew? (y/N)"
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
             print_info "Installing Homebrew..."
@@ -174,7 +322,7 @@ check_nodejs() {
         if [ "$major_version" -lt 18 ]; then
             print_error "Node.js version $node_version is too old!"
             print_warning "n8n requires Node.js v18.17+, v20, or v22"
-            ask_question "Would you like to install a compatible Node.js version? (y/n)"
+            ask_question "Would you like to install a compatible Node.js version? (y/N)"
             read -r response
             if [[ "$response" =~ ^[Yy]$ ]]; then
                 install_nodejs
@@ -192,14 +340,14 @@ check_nodejs() {
             echo ""
             print_info "💡 Recommended: Use Docker installation instead (no Node.js version issues)"
             echo ""
-            ask_question "Would you like to downgrade to a compatible Node.js version? (y/n)"
+            ask_question "Would you like to downgrade to a compatible Node.js version? (y/N)"
             read -r response
             if [[ "$response" =~ ^[Yy]$ ]]; then
                 install_nodejs_compatible
                 return 0
             else
                 print_warning "Continuing with incompatible Node.js version - n8n may not work!"
-                ask_question "Continue anyway? (y/n)"
+                ask_question "Continue anyway? (y/N)"
                 read -r continue_response
                 if [[ "$continue_response" =~ ^[Yy]$ ]]; then
                     return 0
@@ -214,7 +362,7 @@ check_nodejs() {
         fi
     else
         print_warning "Node.js is not installed"
-        ask_question "Would you like to install Node.js? (y/n)"
+        ask_question "Would you like to install Node.js? (y/N)"
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
             install_nodejs
@@ -327,7 +475,7 @@ check_n8n() {
         return 0
     else
         print_warning "n8n is not installed"
-        ask_question "Would you like to install n8n? (y/n)"
+        ask_question "Would you like to install n8n? (y/N)"
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
             install_n8n
@@ -367,7 +515,7 @@ check_n8n_update() {
         echo -e "  ${GREEN}Latest version:${NC}  $latest_version"
         echo ""
         
-        ask_question "Would you like to update n8n now? (y/n)"
+        ask_question "Would you like to update n8n now? (y/N)"
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
             update_n8n
@@ -408,20 +556,43 @@ check_docker() {
             return 0
         else
             print_warning "Docker is installed but not running"
-            print_info "Please start Docker Desktop and try again"
-            ask_question "Start Docker Desktop now and press Enter to continue..."
-            read -r
-            if docker info &> /dev/null; then
-                print_success "Docker is now running"
+            echo ""
+            ask_question "Would you like to start Docker Desktop now? (y/N)"
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                print_info "Starting Docker Desktop..."
+                open -a Docker
+                echo ""
+                print_info "Waiting for Docker to start (this may take a moment)..."
+
+                # Wait for Docker to be ready (max 60 seconds)
+                local wait_time=0
+                local max_wait=60
+                while ! docker info &> /dev/null; do
+                    sleep 2
+                    wait_time=$((wait_time + 2))
+                    printf "\r  ${CYAN}⏳${NC} Waiting... ${DIM}%ds${NC}  " "$wait_time"
+                    if [ $wait_time -ge $max_wait ]; then
+                        echo ""
+                        print_error "Docker did not start within ${max_wait}s"
+                        print_info "Please start Docker Desktop manually and try again."
+                        return 1
+                    fi
+                done
+                printf "\r\033[K"
+                print_success "Docker is now running!"
+                docker_version=$(docker --version)
+                print_success "Docker version: $docker_version"
                 return 0
             else
-                print_error "Docker is still not running"
+                print_error "Docker is required but not running"
+                print_info "Start Docker Desktop manually and run this script again."
                 return 1
             fi
         fi
     else
         print_warning "Docker is not installed"
-        ask_question "Would you like to install Docker Desktop? (y/n)"
+        ask_question "Would you like to install Docker Desktop? (y/N)"
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
             install_docker
@@ -438,9 +609,28 @@ install_docker() {
         print_info "Installing Docker Desktop via Homebrew..."
         brew install --cask docker
         print_success "Docker Desktop installed successfully"
-        print_warning "Please start Docker Desktop from Applications"
-        ask_question "Press Enter after Docker Desktop has started..."
-        read -r
+
+        print_info "Starting Docker Desktop..."
+        open -a Docker
+        echo ""
+        print_info "Waiting for Docker to start (first launch may take longer)..."
+
+        # Wait for Docker to be ready (max 90 seconds for first launch)
+        local wait_time=0
+        local max_wait=90
+        while ! docker info &> /dev/null; do
+            sleep 2
+            wait_time=$((wait_time + 2))
+            printf "\r  ${CYAN}⏳${NC} Waiting... ${DIM}%ds${NC}  " "$wait_time"
+            if [ $wait_time -ge $max_wait ]; then
+                echo ""
+                print_warning "Docker is taking longer than expected"
+                print_info "Please wait for Docker Desktop to fully start, then run this script again."
+                return 1
+            fi
+        done
+        printf "\r\033[K"
+        print_success "Docker is now running!"
     else
         print_error "Homebrew is not available"
         print_info "Please install Docker Desktop manually from: https://www.docker.com/products/docker-desktop"
@@ -506,7 +696,7 @@ configure_n8n() {
     fi
     print_info "n8n will run on port: $N8N_PORT"
     
-    ask_question "Would you like to open the browser automatically? (y/n)"
+    ask_question "Would you like to open the browser automatically? (y/N)"
     read -r open_browser
     
     # Check if data folder exists
@@ -521,17 +711,58 @@ configure_n8n() {
 # Launch n8n with Docker
 launch_n8n_docker() {
     print_section "Starting n8n (Docker)"
-    
+
     print_info "Preparing Docker container..."
-    
+
+    # Verify Docker is running before proceeding
+    if ! docker info &> /dev/null; then
+        echo ""
+        print_error "Docker is not running!"
+        echo ""
+        ask_question "Would you like to start Docker Desktop now? (y/N)"
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            print_info "Starting Docker Desktop..."
+            open -a Docker
+            echo ""
+            print_info "Waiting for Docker to start (this may take a moment)..."
+
+            # Wait for Docker to be ready (max 60 seconds)
+            local wait_time=0
+            local max_wait=60
+            while ! docker info &> /dev/null; do
+                sleep 2
+                wait_time=$((wait_time + 2))
+                printf "\r  ${CYAN}⏳${NC} Waiting... ${DIM}%ds${NC}  " "$wait_time"
+                if [ $wait_time -ge $max_wait ]; then
+                    echo ""
+                    print_error "Docker did not start within ${max_wait}s"
+                    print_info "Please start Docker Desktop manually and try again."
+                    return 1
+                fi
+            done
+            printf "\r\033[K"
+            print_success "Docker is now running!"
+            echo ""
+        else
+            print_warning "Please start Docker Desktop and try again."
+            echo ""
+            print_info "To start Docker Desktop:"
+            echo -e "    ${CYAN}${ICON_ARROW}${NC} Open ${WHITE}Docker Desktop${NC} from Applications"
+            echo -e "    ${CYAN}${ICON_ARROW}${NC} Or run: ${WHITE}open -a Docker${NC}"
+            echo ""
+            return 1
+        fi
+    fi
+
     # Check if container already exists
     if docker ps -a --format '{{.Names}}' | grep -q '^n8n$'; then
         print_info "Existing n8n container found"
-        
+
         # Check if it's running
         if docker ps --format '{{.Names}}' | grep -q '^n8n$'; then
             print_warning "n8n container is already running"
-            ask_question "Would you like to restart it? (y/n)"
+            ask_question "Would you like to restart it? (y/N)"
             read -r response
             if [[ "$response" =~ ^[Yy]$ ]]; then
                 print_info "Stopping existing container..."
@@ -542,15 +773,13 @@ launch_n8n_docker() {
                 if [[ "$open_browser" =~ ^[Yy]$ ]]; then
                     open "http://localhost:$N8N_PORT" &
                 fi
-                echo ""
-                echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
-                echo -e "${CYAN}║${NC}  ${BOLD}n8n is running at:${NC}                                  ${CYAN}║${NC}"
-                echo -e "${CYAN}║${NC}  ${GREEN}${BOLD}http://localhost:$N8N_PORT${NC}                                ${CYAN}║${NC}"
-                echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
-                echo -e "${CYAN}║${NC}  ${YELLOW}To stop, run: docker stop n8n${NC}                      ${CYAN}║${NC}"
-                echo -e "${CYAN}║${NC}  ${YELLOW}To view logs: docker logs -f n8n${NC}                   ${CYAN}║${NC}"
-                echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
-                echo ""
+
+                # Show info box
+                print_info_box "http://localhost:$N8N_PORT" "docker"
+
+                # Show terminal warning - this is critical!
+                print_terminal_warning
+
                 docker logs -f n8n
                 return 0
             fi
@@ -559,31 +788,29 @@ launch_n8n_docker() {
             docker rm n8n
         fi
     fi
-    
+
     print_success "Starting new n8n container..."
     echo ""
-    echo -e "${ROCKET} ${BOLD}${MAGENTA}Launching n8n in Docker...${NC}"
+    echo -e "  ${ICON_ROCKET} ${BOLD}${MAGENTA}Launching n8n in Docker...${NC}"
+
+    # Show info box
+    print_info_box "http://localhost:$N8N_PORT" "docker"
+
+    # Show Docker-specific info
     echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${BOLD}n8n will be available at:${NC}                           ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${GREEN}${BOLD}http://localhost:$N8N_PORT${NC}                                ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${YELLOW}To stop n8n:${NC}                                        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${WHITE}docker stop n8n${NC}                                     ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${YELLOW}To view logs:${NC}                                       ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${WHITE}docker logs -f n8n${NC}                                  ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${YELLOW}To stop logs: Ctrl+C${NC}                               ${CYAN}║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-    
+    echo -e "  ${DIM}Docker commands:${NC}"
+    echo -e "    ${CYAN}${ICON_ARROW}${NC} Stop n8n:    ${WHITE}docker stop n8n${NC}"
+    echo -e "    ${CYAN}${ICON_ARROW}${NC} View logs:   ${WHITE}docker logs -f n8n${NC}"
+
+    # Show terminal warning - this is critical!
+    print_terminal_warning
+
     # Open browser if requested
     if [[ "$open_browser" =~ ^[Yy]$ ]]; then
         sleep 5
         open "http://localhost:$N8N_PORT" &
     fi
-    
+
     # Run Docker container
     docker run -it --rm \
         --name n8n \
@@ -595,30 +822,28 @@ launch_n8n_docker() {
 # Launch n8n (native)
 launch_n8n() {
     print_section "Starting n8n (Native)"
-    
+
     print_info "Preparing environment..."
-    
+
     # Export environment variables
     export N8N_PORT="$N8N_PORT"
-    
+
     print_success "Everything is ready!"
     echo ""
-    echo -e "${ROCKET} ${BOLD}${MAGENTA}Launching n8n...${NC}"
-    echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${BOLD}n8n will be available at:${NC}                           ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${GREEN}${BOLD}http://localhost:$N8N_PORT${NC}                                ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  ${YELLOW}To stop n8n, press: Ctrl+C${NC}                         ${CYAN}║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-    
+    echo -e "  ${ICON_ROCKET} ${BOLD}${MAGENTA}Launching n8n...${NC}"
+
+    # Show info box
+    print_info_box "http://localhost:$N8N_PORT" "native"
+
+    # Show terminal warning - this is critical!
+    print_terminal_warning
+
     # Open browser if requested
     if [[ "$open_browser" =~ ^[Yy]$ ]]; then
         sleep 3
         open "http://localhost:$N8N_PORT" &
     fi
-    
+
     # Launch n8n
     n8n start
 }
@@ -704,7 +929,7 @@ main() {
     configure_n8n
     
     echo ""
-    ask_question "Would you like to start n8n now? (y/n)"
+    ask_question "Would you like to start n8n now? (y/N)"
     read -r response
     if [[ "$response" =~ ^[Yy]$ ]]; then
         if [[ "$INSTALLATION_METHOD" == "docker" ]]; then

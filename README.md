@@ -8,147 +8,63 @@ Interactive bash script to launch n8n on macOS with a user-friendly CLI interfac
 
 ## ⚡ Quick Install
 
-Run this command in your macOS Terminal:
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/blazejkapala/n8n-macos-launcher/main/n8n-launcher.sh | bash
 ```
 
-That's it! The script will guide you through everything else.
-
 ## ✨ Features
 
-- 🎯 **Choose Your Installation Method**: Native or Docker
-- 🔄 **Automatic Update Checking**: Detects new n8n versions on every run
-- 🎨 Colorful CLI interface with symbols (✓, ✗, ➜, ★)
-- ✅ Automatic dependency checking (Homebrew, Node.js, n8n, Docker)
-- 📦 Interactive installation of missing components
-- 🔧 Port configuration and auto-browser opening
-- 🍎 Full support for Apple Silicon (M1/M2/M3)
-- 🐳 Docker support for isolated environments
-- 🛡️ Safe error handling and interruption support (Ctrl+C)
+- 🎯 **Two Installation Methods**: Native (Node.js) or Docker
+- 🔄 **Automatic Updates**: Detects and installs new n8n versions
+- 🐳 **Auto-start Docker**: Launches Docker Desktop if not running
+- 🎨 **Beautiful CLI**: Animations, progress bars, colored output
+- ✅ **Dependency Management**: Installs Homebrew, Node.js, Docker automatically
+- 🍎 **Apple Silicon**: Full M1/M2/M3 support
 
 ## 🎯 Installation Methods
 
-The script offers **two installation methods**:
-
 | Method | Pros | Cons |
 |--------|------|------|
-| **🖥️ Native** | Faster startup, better macOS integration | Requires Node.js v18/v20/v22 |
-| **🐳 Docker** | No version conflicts, isolated environment | Requires Docker Desktop |
+| **Native** | Faster startup, lighter | Requires Node.js v18/v20/v22 |
+| **Docker** | Isolated, no version conflicts | Requires Docker Desktop |
 
-💡 **Tip:** If you have Node.js version issues, choose Docker!
-
-## 📖 How It Works
-
-The script automatically:
-
-1. ✓ Checks system (macOS, processor type)
-2. ✓ Asks you to choose installation method (Native or Docker)
-3. ✓ Detects/installs dependencies
-4. ✓ Checks for n8n updates and offers to upgrade
-5. ✓ Configures port and launches n8n
-
-After launch, n8n will be available at: `http://localhost:5678`
-
-## 🛠️ Configuration
-
-### Custom Port
+## 📖 Usage
 
 ```bash
-export N8N_PORT=8080
+# Standard launch
 ./n8n-launcher.sh
+
+# Custom port
+N8N_PORT=8080 ./n8n-launcher.sh
 ```
 
-### Manual n8n Launch
+After launch, open: `http://localhost:5678`
+
+### Manual Commands
 
 ```bash
-# Native
-n8n start
+# Update n8n
+npm install -g n8n@latest        # Native
+docker pull n8nio/n8n:latest     # Docker
 
-# Docker
-docker run -it --rm --name n8n -p 5678:5678 -v ~/.n8n:/home/node/.n8n n8nio/n8n
-```
-
-### Updating n8n
-
-The script **automatically checks for updates** every time you run it!
-
-```bash
-./n8n-launcher.sh
-# If update available:
-# ⚠ New n8n version available!
-#   Current: 1.64.3
-#   Latest:  1.70.0
-# ★ Would you like to update now? (y/n)
-```
-
-Manual update:
-```bash
-# Native
-npm install -g n8n@latest
-
-# Docker
-docker pull n8nio/n8n:latest
+# Start without launcher
+n8n start                        # Native
+docker run -it --rm --name n8n -p 5678:5678 -v ~/.n8n:/home/node/.n8n n8nio/n8n  # Docker
 ```
 
 ## 🐛 Troubleshooting
 
-### Node.js Version Issues
+| Problem | Solution |
+|---------|----------|
+| Node.js version error | Use Docker, or: `brew install node@20 && brew link --overwrite node@20 --force` |
+| Port 5678 in use | `lsof -i :5678` to find process, or use different port |
+| Permission denied | `chmod +x n8n-launcher.sh` |
+| Docker container exists | `docker stop n8n && docker rm n8n` |
 
-n8n supports **only** these versions:
-- ✅ v18.17.0+
-- ✅ v20.x (Recommended)
-- ✅ v22.x
-- ❌ v19, v21, v23, v25+ (NOT supported)
+## 📂 Data
 
-**Solution:** Use Docker installation (no version issues!) or:
-```bash
-brew install node@20
-brew link --overwrite node@20 --force
-```
-
-### Port Already in Use
-
-```bash
-lsof -i :5678
-# Or use different port:
-export N8N_PORT=8080
-```
-
-### Permission Denied
-
-```bash
-chmod +x n8n-launcher.sh
-```
-
-### Docker Issues
-
-```bash
-# Start Docker Desktop from Applications, then:
-docker info
-
-# Remove old container:
-docker stop n8n && docker rm n8n
-```
-
-### Apple Silicon PATH
-
-```bash
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-source ~/.zprofile
-```
-
-## 📂 Data Location
-
-n8n data is stored in: `~/.n8n`
-
-Works with both Native and Docker installations.
+All n8n data is stored in `~/.n8n` (both Native and Docker).
 
 ## 📝 License
 
-MIT License - see [LICENSE](LICENSE)
-
----
-
-**⭐ Star this project if it helped you!**
+MIT
