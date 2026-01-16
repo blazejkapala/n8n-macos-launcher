@@ -97,7 +97,7 @@ Alternative: Manually update
 - Docker: Image auto-updates, or docker pull n8nio/n8n:latest
 ```
 
-### Scenario 4: Debugging Problems
+### Scenario 3: Debugging Problems
 
 **Problem: "Node.js version X is currently not supported"**
 ```
